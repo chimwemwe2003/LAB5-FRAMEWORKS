@@ -13,15 +13,34 @@ setInterval(updateClock, 1000);
 // Initialize the clock immediately
 updateClock();
 
-
-// Theme management
+// Enhanced Theme Management
 function setTheme(theme) {
+    // Smooth transition for all elements
+    document.body.style.transition = 'background-color 0.5s ease, color 0.3s ease';
+    document.querySelectorAll('main, header, section, .service-card, .hero, .sidebar').forEach(el => {
+        el.style.transition = 'background-color 0.5s ease, color 0.3s ease, border-color 0.3s ease';
+    });
+    
+    // Apply theme
     document.body.classList.toggle("dark-theme", theme === 'dark');
     localStorage.setItem('theme', theme);
-    document.getElementById("themeToggle").classList.add('active');
+    
+    // Update icon
+    const icon = document.getElementById("themeToggle");
+    icon.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+    icon.classList.add('active');
+    
     setTimeout(() => {
-        document.getElementById("themeToggle").classList.remove('active');
+        icon.classList.remove('active');
     }, 300);
+    
+    // Remove transitions after animation completes
+    setTimeout(() => {
+        document.body.style.transition = '';
+        document.querySelectorAll('main, header, section, .service-card, .hero, .sidebar').forEach(el => {
+            el.style.transition = '';
+        });
+    }, 500);
 }
 
 // Initialize theme from localStorage
@@ -32,6 +51,8 @@ document.getElementById("themeToggle").addEventListener("click", () => {
     const currentTheme = document.body.classList.contains("dark-theme") ? 'light' : 'dark';
     setTheme(currentTheme);
 });
+
+// Contact Form Handling
 document.getElementById("contactForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const name = document.getElementById("nameInput").value.trim();
@@ -40,54 +61,27 @@ document.getElementById("contactForm").addEventListener("submit", (e) => {
         alert("Please fill out all fields.");
     } else {
         document.getElementById("response").innerText = `Thanks, ${name}. We'll get back to you soon!`;
-        // Optional: reset form
         e.target.reset();
     }
 });
 
-// Load users function
-async function loadUsers() {
-    try {
-        const res = await fetch('https://jsonplaceholder.typicode.com/users');
-        const users = await res.json();
-        const userList = document.getElementById('userList');
-        userList.innerHTML = '';
-        users.forEach(user => {
-            const li = document.createElement('li');
-            li.textContent = user.name;
-            userList.appendChild(li);
-        });
-    } catch (err) {
-        console.error('Failed to load users:', err);
-        userList.innerHTML = '<li>Error loading users</li>';
-    }
-}
-
-// Load users when page loads
-document.addEventListener('DOMContentLoaded', loadUsers);
-
-// Button click handler
-document.getElementById('loadUsersBtn').addEventListener('click', loadUsers);
-
-// FAQ Container Toggle Functionality
-document.querySelector(".faq-toggle").addEventListener("click", () => {
-    const faqContent = document.querySelector(".faq-content");
-    const isExpanded = faqContent.classList.contains("expanded");
-    
-    faqContent.classList.toggle("expanded", !isExpanded);
-    const icon = document.querySelector(".faq-toggle i");
-    icon.classList.toggle("fa-chevron-up", !isExpanded);
-    icon.classList.toggle("fa-chevron-down", isExpanded);
-});
-
-// Initialize FAQ items to be expanded by default
-document.querySelectorAll(".faq-item .question").forEach((q) => {
+// FAQ Toggle Functionality
+document.querySelectorAll(".question").forEach((q) => {
     q.addEventListener("click", () => {
         const answer = q.nextElementSibling;
-        const isOpening = !answer.classList.contains("visible");
         
-        q.classList.toggle("expanded", isOpening);
-        answer.classList.toggle("visible", isOpening);
-        answer.style.maxHeight = isOpening ? answer.scrollHeight + "px" : "0";
+        // Toggle current question
+        q.classList.toggle("expanded");
+        answer.classList.toggle("visible");
+        
+        // Close other answers when opening a new one
+        if (answer.classList.contains("visible")) {
+            document.querySelectorAll(".answer").forEach((otherAnswer) => {
+                if (otherAnswer !== answer && otherAnswer.classList.contains("visible")) {
+                    otherAnswer.classList.remove("visible");
+                    otherAnswer.previousElementSibling.classList.remove("expanded");
+                }
+            });
+        }
     });
 });
